@@ -38,6 +38,7 @@ function App() {
         setCurrentGame(response.game);
       }
       if(response.type==='update'){
+        console.log('server update', response.game.playerTurn);
         if(!response.game.state) return;
         for(const b of Object.keys(response.game.state)){
           const shape = response.game.state[b];
@@ -53,16 +54,17 @@ function App() {
           }
         }
         const state = response.game.state;
-        const winner = calculateWinner(state);
-        socket.send(JSON.stringify("Winner : "+winner));
-        if(winner){
-          const payLoad = {
-            "type": "winner",
-            "winner": winner,
-            "game": response.game  
-          }
-          socket.send(JSON.stringify(payLoad));
-        }
+        // const winner = calculateWinner(state);
+        // socket.send(JSON.stringify("Winner : "+winner));
+        // if(winner){
+        //   const payLoad = {
+        //     "type": "winner",
+        //     "winner": winner,
+        //     "game": response.game  
+        //   }
+        //   socket.send(JSON.stringify(payLoad));
+        // }
+        setCurrentGame(response.game);
       }
       if(response.type==='winner'){
         setWinner(true);
@@ -97,24 +99,29 @@ function App() {
   }
 
   const handleBox = (e) => {
-    //console.log(e.target.id);
-    if(playerShape==='cross'){
-      e.target.innerHTML = "<img src="+cross+" height='70%' width='70%'/>";
+    console.log('PT client', currentGame.playerTurn);
+    if (currentGame.playerTurn === clientId) {
+      if(playerShape==='cross'){
+        e.target.innerHTML = "<img src="+cross+" height='70%' width='70%'/>";
+      }
+      if(playerShape==='circle'){
+        e.target.innerHTML = "<img src="+circle+" height='70%' width='70%'/>";
+      }
+      if(playerShape==='triangle'){
+        e.target.innerHTML = "<img src="+triangle+" height='70%' width='70%'/>";
+      }
+
+      const payLoad = {
+        "type" : "play",
+        "clientId" : clientId,
+        "gameId" : currentGame.id,
+        "box": e.target.id,
+        "shape": playerShape 
+      }
+      socket.send(JSON.stringify(payLoad));
+    } else {
+      console.log('Not your turn');
     }
-    if(playerShape==='circle'){
-      e.target.innerHTML = "<img src="+circle+" height='70%' width='70%'/>";
-    }
-    if(playerShape==='triangle'){
-      e.target.innerHTML = "<img src="+triangle+" height='70%' width='70%'/>";
-    }
-    const payLoad = {
-      "type" : "play",
-      "clientId" : clientId,
-      "gameId" : currentGame.id,
-      "box": e.target.id,
-      "shape": playerShape 
-    }
-    socket.send(JSON.stringify(payLoad));
   }
 
   for(let i=0;i<16;i++){
@@ -133,7 +140,17 @@ function App() {
         {
           (currentGame) ?
           (currentGame.clients.map(c => {
-            return <div className='player' key={c.clientId} style={{background: c.color}}>{c.clientId}</div>
+            return (
+              <div
+                className='player'
+                key={c.clientId}
+                style={{
+                  background: currentGame.playerTurn === c.clientId ? "red" : c.color
+                }}
+              >
+                {c.clientId}
+              </div>
+            )
           })) : <></>
         }
       </div>
@@ -148,48 +165,6 @@ function App() {
       {(currentGame) ? <h2 className="game-id">Game ID : {currentGame.id}</h2> : <></>}
     </div>
   );
-}
-
-const calculateWinner = (state) => {
-  //rows
-  if(state[1]===state[2] && state[2]===state[3]) return state[1];
-  if(state[2]===state[3] && state[3]===state[4]) return state[2];
-
-  if(state[5]===state[6] && state[6]===state[7]) return state[5];
-  if(state[6]===state[7] && state[7]===state[8]) return state[6];
-
-  if(state[9]===state[10] && state[10]===state[11]) return state[9];
-  if(state[10]===state[11] && state[11]===state[12]) return state[10];
-
-  if(state[13]===state[14] && state[14]===state[15]) return state[13];
-  if(state[14]===state[15] && state[15]===state[16]) return state[14];
-  //colums
-  if(state[1]===state[5] && state[5]===state[9]) return state[1];
-  if(state[5]===state[9] && state[9]===state[13]) return state[5];
-
-  if(state[2]===state[6] && state[6]===state[10]) return state[6];
-  if(state[6]===state[10] && state[10]===state[14]) return state[6];
-
-  if(state[3]===state[7] && state[7]===state[11]) return state[11];
-  if(state[7]===state[11] && state[11]===state[15]) return state[11];
-
-  if(state[4]===state[8] && state[8]===state[12]) return state[12];
-  if(state[8]===state[12] && state[12]===state[16]) return state[12];
-  //diagonals
-  if(state[1]===state[6] && state[6]===state[11]) return state[6];
-  if(state[3]===state[6] && state[6]===state[9]) return state[6];
-
-  if(state[2]===state[7] && state[7]===state[12]) return state[7];
-  if(state[4]===state[7] && state[7]===state[10]) return state[7];
-
-  if(state[5]===state[10] && state[10]===state[15]) return state[10];
-  if(state[7]===state[10] && state[10]===state[13]) return state[10];
-
-  if(state[6]===state[11] && state[11]===state[16]) return state[11];
-  if(state[8]===state[11] && state[11]===state[14]) return state[11];
-
-  return null;
-
 }
 
 export default App;
