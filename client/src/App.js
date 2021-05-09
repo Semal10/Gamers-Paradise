@@ -22,7 +22,7 @@ function App() {
   }) : <></>
 
   useEffect(() => {
-    const socket = new WebSocket('ws://localhost:8080');
+    const socket = new WebSocket('ws://murmuring-island-83018.herokuapp.com:8080');
     setSocket(socket);
     socket.onmessage = (message) => {
       console.log('Received from server : ', message.data);
