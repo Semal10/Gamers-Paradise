@@ -138,6 +138,10 @@ wss.on('connection', (ws) => {
     ws.send(JSON.stringify(payLoad));
 });
 
+app.get('/', (req, res) => {
+  res.send('Hi');
+});
+
 server.listen(process.env.PORT || 8080, () => {
     console.log("Listening on port : 8080");
 });
