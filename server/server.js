@@ -3,7 +3,7 @@ const http = require('http');
 const WebSocket = require('ws');
 const redis = require('redis');
 
-const client = redis.createClient("redis://redis:6379");
+const client = redis.createClient(process.env.REDIS_URL || "redis://redis:6379");
 
 client.on('connect', function () {
   console.log('connected to redis');
